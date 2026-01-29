@@ -2,14 +2,17 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 
-// Fetch categories and services
-$stmt = $pdo->query("SELECT * FROM categories ORDER BY sort_order");
-$categories = $stmt->fetchAll();
+// Fetch categories
+$sql = "SELECT * FROM categories ORDER BY sort_order";
+$result = mysqli_query($conn, $sql);
+$categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+// Fetch services
+$sql = "SELECT * FROM services";
+$result = mysqli_query($conn, $sql);
+$all_services = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 $services_by_cat = [];
-$stmt = $pdo->query("SELECT * FROM services");
-$all_services = $stmt->fetchAll();
-
 foreach ($all_services as $service) {
     $services_by_cat[$service['category_id']][] = $service;
 }

@@ -10,32 +10,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf_token($_POST['csrf_token'] ?? '');
 
     if (isset($_POST['add_user'])) {
+        $username = mysqli_real_escape_string($conn, $_POST['username']);
         $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        try {
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
-            $stmt->execute([$_POST['username'], $hash, $_POST['role']]);
+        $role = mysqli_real_escape_string($conn, $_POST['role']);
+
+        $sql = "INSERT INTO users (username, password_hash, role) VALUES ('$username', '$hash', '$role')";
+        if (mysqli_query($conn, $sql)) {
             $message = "User added successfully.";
-        } catch (PDOException $e) {
+        } else {
             $message = "Error: Username might already exist.";
         }
     } elseif (isset($_POST['update_user'])) {
-        try {
-            if (!empty($_POST['password'])) {
-                $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE users SET username = ?, password_hash = ?, role = ? WHERE id = ?");
-                $stmt->execute([$_POST['username'], $hash, $_POST['role'], $_POST['id']]);
-            } else {
-                $stmt = $pdo->prepare("UPDATE users SET username = ?, role = ? WHERE id = ?");
-                $stmt->execute([$_POST['username'], $_POST['role'], $_POST['id']]);
-            }
+        $id = (int)$_POST['id'];
+        $username = mysqli_real_escape_string($conn, $_POST['username']);
+        $role = mysqli_real_escape_string($conn, $_POST['role']);
+
+        if (!empty($_POST['password'])) {
+            $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $sql = "UPDATE users SET username = '$username', password_hash = '$hash', role = '$role' WHERE id = $id";
+        } else {
+            $sql = "UPDATE users SET username = '$username', role = '$role' WHERE id = $id";
+        }
+
+        if (mysqli_query($conn, $sql)) {
             $message = "User updated successfully.";
-        } catch (PDOException $e) {
+        } else {
             $message = "Error updating user.";
         }
     } elseif (isset($_POST['delete_user'])) {
-        if ($_POST['id'] != $_SESSION['user_id']) {
-            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-            $stmt->execute([$_POST['id']]);
+        $id = (int)$_POST['id'];
+        if ($id != $_SESSION['user_id']) {
+            $sql = "DELETE FROM users WHERE id = $id";
+            mysqli_query($conn, $sql);
             $message = "User deleted successfully.";
         } else {
             $message = "You cannot delete yourself.";
@@ -43,8 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$stmt = $pdo->query("SELECT id, username, role FROM users");
-$users = $stmt->fetchAll();
+$sql = "SELECT id, username, role FROM users";
+$result = mysqli_query($conn, $sql);
+$users = mysqli_fetch_all($result, MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">

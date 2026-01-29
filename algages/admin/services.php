@@ -10,24 +10,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf_token($_POST['csrf_token'] ?? '');
 
     if (isset($_POST['add_service'])) {
-        $stmt = $pdo->prepare("INSERT INTO services (category_id, title, description, base_price) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$_POST['category_id'], $_POST['title'], $_POST['description'], $_POST['base_price']]);
-        $message = "Service added successfully.";
+        $cid = (int)$_POST['category_id'];
+        $title = mysqli_real_escape_string($conn, $_POST['title']);
+        $desc = mysqli_real_escape_string($conn, $_POST['description']);
+        $price = (float)$_POST['base_price'];
+
+        $sql = "INSERT INTO services (category_id, title, description, base_price) VALUES ($cid, '$title', '$desc', $price)";
+        if (mysqli_query($conn, $sql)) {
+            $message = "Service added successfully.";
+        }
     } elseif (isset($_POST['update_service'])) {
-        $stmt = $pdo->prepare("UPDATE services SET category_id = ?, title = ?, description = ?, base_price = ? WHERE id = ?");
-        $stmt->execute([$_POST['category_id'], $_POST['title'], $_POST['description'], $_POST['base_price'], $_POST['id']]);
-        $message = "Service updated successfully.";
+        $id = (int)$_POST['id'];
+        $cid = (int)$_POST['category_id'];
+        $title = mysqli_real_escape_string($conn, $_POST['title']);
+        $desc = mysqli_real_escape_string($conn, $_POST['description']);
+        $price = (float)$_POST['base_price'];
+
+        $sql = "UPDATE services SET category_id = $cid, title = '$title', description = '$desc', base_price = $price WHERE id = $id";
+        if (mysqli_query($conn, $sql)) {
+            $message = "Service updated successfully.";
+        }
     } elseif (isset($_POST['delete_service'])) {
-        $stmt = $pdo->prepare("DELETE FROM services WHERE id = ?");
-        $stmt->execute([$_POST['id']]);
-        $message = "Service deleted successfully.";
+        $id = (int)$_POST['id'];
+        $sql = "DELETE FROM services WHERE id = $id";
+        if (mysqli_query($conn, $sql)) {
+            $message = "Service deleted successfully.";
+        }
     }
 }
 
-$stmt = $pdo->query("SELECT s.*, c.name as category_name FROM services s JOIN categories c ON s.category_id = c.id ORDER BY c.sort_order, s.title");
-$services = $stmt->fetchAll();
+$sql = "SELECT s.*, c.name as category_name FROM services s JOIN categories c ON s.category_id = c.id ORDER BY c.sort_order, s.title";
+$result = mysqli_query($conn, $sql);
+$services = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-$categories = $pdo->query("SELECT * FROM categories ORDER BY sort_order")->fetchAll();
+$sql_cat = "SELECT * FROM categories ORDER BY sort_order";
+$result_cat = mysqli_query($conn, $sql_cat);
+$categories = mysqli_fetch_all($result_cat, MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">

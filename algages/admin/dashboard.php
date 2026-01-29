@@ -3,11 +3,13 @@ require_once '../includes/db.php';
 require_once '../includes/auth.php';
 check_login();
 
-$stmt = $pdo->query("SELECT * FROM client_submissions ORDER BY created_at DESC");
-$submissions = $stmt->fetchAll();
+$sql = "SELECT * FROM client_submissions ORDER BY created_at DESC";
+$result = mysqli_query($conn, $sql);
+$submissions = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-$stmt = $pdo->query("SELECT COUNT(*) FROM client_submissions WHERE status = 'new'");
-$new_count = $stmt->fetchColumn();
+$sql_count = "SELECT COUNT(*) FROM client_submissions WHERE status = 'new'";
+$result_count = mysqli_query($conn, $sql_count);
+$new_count = mysqli_fetch_row($result_count)[0];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,47 +18,22 @@ $new_count = $stmt->fetchColumn();
     <title>Admin Dashboard - Algages</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        nav {
-            background: var(--dark-gray);
-            padding: 1rem;
-            margin-bottom: 2rem;
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin-right: 1.5rem;
-            font-weight: bold;
-        }
-        nav a:hover {
-            color: var(--prof-orange);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--light-gray);
-        }
-        th {
-            background: var(--slate-gray);
-            color: white;
-        }
-        tr:hover {
-            background: #f9f9f9;
-        }
-        .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+        nav { background: var(--dark-gray); padding: 1rem; margin-bottom: 2rem; }
+        nav a { color: white; text-decoration: none; margin-right: 1.5rem; font-weight: bold; }
+        nav a:hover { color: var(--prof-orange); }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--light-gray); }
+        th { background: var(--slate-gray); color: white; }
+        tr:hover { background: #f9f9f9; }
+        .status-badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
         .status-new { background: #e67e22; color: white; }
         .status-in-progress { background: #3498db; color: white; }
         .status-completed { background: #27ae60; color: white; }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(230, 126, 34, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
+        }
     </style>
 </head>
 <body>

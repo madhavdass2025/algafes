@@ -3,16 +3,16 @@ require_once '../includes/db.php';
 require_once '../includes/auth.php';
 check_login();
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+$id = (int)($_GET['id'] ?? 0);
 if (!$id) {
     header('Location: dashboard.php');
     exit;
 }
 
 // Fetch submission
-$stmt = $pdo->prepare("SELECT * FROM client_submissions WHERE id = ?");
-$stmt->execute([$id]);
-$submission = $stmt->fetch();
+$sql = "SELECT * FROM client_submissions WHERE id = $id";
+$result = mysqli_query($conn, $sql);
+$submission = mysqli_fetch_assoc($result);
 
 if (!$submission) {
     die("Submission not found.");
@@ -21,21 +21,21 @@ if (!$submission) {
 // Update status if posted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     verify_csrf_token($_POST['csrf_token'] ?? '');
-    $new_status = $_POST['status'];
-    $stmt = $pdo->prepare("UPDATE client_submissions SET status = ? WHERE id = ?");
-    $stmt->execute([$new_status, $id]);
+    $new_status = mysqli_real_escape_string($conn, $_POST['status']);
+    $sql_update = "UPDATE client_submissions SET status = '$new_status' WHERE id = $id";
+    mysqli_query($conn, $sql_update);
     $submission['status'] = $new_status;
 }
 
 // Fetch services
-$stmt = $pdo->prepare("SELECT s.title, s.base_price FROM services s JOIN submission_services ss ON s.id = ss.service_id WHERE ss.submission_id = ?");
-$stmt->execute([$id]);
-$services = $stmt->fetchAll();
+$sql_services = "SELECT s.title, s.base_price FROM services s JOIN submission_services ss ON s.id = ss.service_id WHERE ss.submission_id = $id";
+$result_services = mysqli_query($conn, $sql_services);
+$services = mysqli_fetch_all($result_services, MYSQLI_ASSOC);
 
 // Fetch files
-$stmt = $pdo->prepare("SELECT * FROM submission_files WHERE submission_id = ?");
-$stmt->execute([$id]);
-$files = $stmt->fetchAll();
+$sql_files = "SELECT * FROM submission_files WHERE submission_id = $id";
+$result_files = mysqli_query($conn, $sql_files);
+$files = mysqli_fetch_all($result_files, MYSQLI_ASSOC);
 
 $whatsapp_link = "https://wa.me/" . preg_replace('/[^0-9]/', '', $submission['whatsapp']);
 ?>
@@ -46,18 +46,8 @@ $whatsapp_link = "https://wa.me/" . preg_replace('/[^0-9]/', '', $submission['wh
     <title>View Submission #<?php echo $id; ?> - Algages</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        .detail-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
         h3 { margin-top: 0; border-bottom: 2px solid var(--prof-orange); padding-bottom: 0.5rem; }
         .info-row { margin-bottom: 0.75rem; }
         .info-label { font-weight: bold; width: 150px; display: inline-block; }
