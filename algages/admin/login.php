@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once '../includes/db.php';
+require_once '../includes/auth.php';
 
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
@@ -10,6 +10,7 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token($_POST['csrf_token'] ?? '');
     $username = $_POST['username'];
     $password = $_POST['password'];
 
@@ -56,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p style="color: red;"><?php echo $error; ?></p>
             <?php endif; ?>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" name="username" required>

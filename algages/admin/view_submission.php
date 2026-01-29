@@ -20,6 +20,7 @@ if (!$submission) {
 
 // Update status if posted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
+    verify_csrf_token($_POST['csrf_token'] ?? '');
     $new_status = $_POST['status'];
     $stmt = $pdo->prepare("UPDATE client_submissions SET status = ? WHERE id = ?");
     $stmt->execute([$new_status, $id]);
@@ -85,6 +86,7 @@ $whatsapp_link = "https://wa.me/" . preg_replace('/[^0-9]/', '', $submission['wh
                 <div class="card">
                     <h3>Manage Status</h3>
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                         <select name="status" class="form-group" style="width: 200px; padding: 0.5rem;">
                             <option value="new" <?php echo $submission['status'] == 'new' ? 'selected' : ''; ?>>New</option>
                             <option value="in-progress" <?php echo $submission['status'] == 'in-progress' ? 'selected' : ''; ?>>In Progress</option>

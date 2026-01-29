@@ -5,6 +5,9 @@ check_login();
 
 $stmt = $pdo->query("SELECT * FROM client_submissions ORDER BY created_at DESC");
 $submissions = $stmt->fetchAll();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM client_submissions WHERE status = 'new'");
+$new_count = $stmt->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,7 +76,14 @@ $submissions = $stmt->fetchAll();
     </nav>
 
     <div class="container">
-        <h2>Inquiry Inbox</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>Inquiry Inbox</h2>
+            <?php if ($new_count > 0): ?>
+                <div style="background: var(--prof-orange); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; animation: pulse 2s infinite;">
+                    <?php echo $new_count; ?> New Inquiry<?php echo $new_count > 1 ? 'ies' : ''; ?>
+                </div>
+            <?php endif; ?>
+        </div>
         <table>
             <thead>
                 <tr>

@@ -7,6 +7,8 @@ $message = '';
 
 // Handle CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token($_POST['csrf_token'] ?? '');
+
     if (isset($_POST['add_service'])) {
         $stmt = $pdo->prepare("INSERT INTO services (category_id, title, description, base_price) VALUES (?, ?, ?, ?)");
         $stmt->execute([$_POST['category_id'], $_POST['title'], $_POST['description'], $_POST['base_price']]);
@@ -64,6 +66,7 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY sort_order")->fetch
 
         <h3>Add New Service</h3>
         <form method="POST" class="form-inline">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
             <select name="category_id" required>
                 <?php foreach ($categories as $cat): ?>
                     <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
@@ -90,6 +93,7 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY sort_order")->fetch
                 <?php foreach ($services as $s): ?>
                 <tr>
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                         <input type="hidden" name="id" value="<?php echo $s['id']; ?>">
                         <td>
                             <select name="category_id">

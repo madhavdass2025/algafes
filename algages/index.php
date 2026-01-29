@@ -1,10 +1,6 @@
 <?php
-session_start();
 require_once 'includes/db.php';
-
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+require_once 'includes/auth.php';
 
 // Fetch categories and services
 $stmt = $pdo->query("SELECT * FROM categories ORDER BY sort_order");
@@ -79,7 +75,7 @@ foreach ($all_services as $service) {
         </div>
 
         <form id="submission-form" action="submit.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
             <input type="hidden" name="selected_services" id="selected-services-input">
             <input type="hidden" name="total_fee" id="total-fee-input">
 

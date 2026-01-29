@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'includes/db.php';
+require_once 'includes/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
@@ -8,9 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // CSRF Validation
-if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    die("CSRF token validation failed.");
-}
+verify_csrf_token($_POST['csrf_token'] ?? '');
 
 // Input Sanitization
 $full_name = trim($_POST['full_name'] ?? '');
