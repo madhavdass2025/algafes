@@ -1,4 +1,10 @@
 <?php
+/**
+ * DATABASE INITIALIZATION SCRIPT
+ *
+ * Note: This script is designed for quick setup using SQLite.
+ * For production MySQL, use the provided includes/schema.sql in your MySQL manager.
+ */
 $db_file = __DIR__ . '/../database.sqlite';
 
 try {
@@ -11,8 +17,8 @@ try {
     $pdo = new PDO('sqlite:' . $db_file);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Create tables
-    $sql = file_get_contents(__DIR__ . '/schema.sql');
+    // Create tables using SQLite-specific schema
+    $sql = file_get_contents(__DIR__ . '/schema_sqlite.sql');
     $pdo->exec($sql);
 
     echo "Tables created successfully.\n";
